@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}License{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">License Activation</h5>
+        <span class="badge {% if license_valid %}bg-success{% else %}bg-danger{% endif %}">
+          {{ "Valid" if license_valid else "Invalid" }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+
+        <form method="post">
+          <div class="mb-3">
+            <label for="license_key" class="form-label">License Key</label>
+            <input
+              type="text"
+              class="form-control"
+              id="license_key"
+              name="license_key"
+              value="{{ current_key or '' }}"
+              placeholder="Enter license key"
+              required
+            />
+            <div class="form-text">
+              Demo key: <code>SF-TRIAL-2026</code>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Activated At (UTC)</label>
+            <input type="text" class="form-control" value="{{ activated_at or '' }}" disabled />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Expiry Date</label>
+            <input type="text" class="form-control" value="{{ expiry or '' }}" disabled />
+            <div class="form-text">Expiry is automatically set to 1 month from first activation.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Activate</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

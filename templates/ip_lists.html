@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}IP Lists{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">IP Lists (Admin)</h5>
+  </div>
+
+  <div class="card-body">
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+      <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    <div class="mb-4">
+      <h6 class="mb-2">Create New List</h6>
+      <form method="post" class="row g-2">
+        <input type="hidden" name="action" value="create" />
+        <div class="col-md-3">
+          <label class="form-label">Name</label>
+          <input class="form-control" name="name" placeholder="e.g. Office LAN /28" required />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Type</label>
+          <select class="form-select" name="list_type" required>
+            <option value="target">Target Range</option>
+            <option value="exclude">Exclude List</option>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Value</label>
+          <input class="form-control" name="value_text" placeholder="e.g. 192.168.0.0/24 OR 192.168.0.1, 192.168.0.5-10" required />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button class="btn btn-primary w-100" type="submit">Add</button>
+        </div>
+        <div class="col-12">
+          <div class="form-text">
+            Value supports: single IP, CIDR, or range (same format as Scan / Exclude fields).
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <hr />
+
+    <h6 class="mb-2">Existing Lists</h6>
+    {% if ip_lists|length == 0 %}
+      <p class="text-muted mb-0">No saved lists yet.</p>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 70px;">ID</th>
+              <th style="min-width: 180px;">Name</th>
+              <th style="width: 140px;">Type</th>
+              <th>Value</th>
+              <th style="width: 200px;">Updated</th>
+              <th style="width: 170px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for l in ip_lists %}
+            <tr>
+              <td>{{ l.id }}</td>
+
+              <td>
+                <form method="post" class="d-flex gap-2">
+                  <input type="hidden" name="action" value="update" />
+                  <input type="hidden" name="list_id" value="{{ l.id }}" />
+                  <input class="form-control form-control-sm" name="name" value="{{ l.name }}" required style="max-width: 220px;" />
+              </td>
+
+              <td>
+                  <select class="form-select form-select-sm" name="list_type" required style="max-width: 160px;">
+                    <option value="target" {{ 'selected' if l.list_type == 'target' else '' }}>Target</option>
+                    <option value="exclude" {{ 'selected' if l.list_type == 'exclude' else '' }}>Exclude</option>
+                  </select>
+              </td>
+
+              <td>
+                  <input class="form-control form-control-sm" name="value_text" value="{{ l.value_text }}" required />
+              </td>
+
+              <td class="text-muted small">
+                  {{ l.updated_at }}
+              </td>
+
+              <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit">Save</button>
+                </form>
+
+                <form method="post" class="d-inline" onsubmit="return confirm('Delete this list?');">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="list_id" value="{{ l.id }}" />
+                  <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

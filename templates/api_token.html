@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}SIEM API Token{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">SIEM API Token</h5>
+      </div>
+
+      <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if success %}
+        <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+
+        <!-- Show-only-once token block -->
+        {% if new_token %}
+          <div class="alert alert-warning">
+            <div class="fw-semibold mb-1">
+              Copy this token now — it will be shown only once.
+            </div>
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                id="newTokenBox"
+                value="{{ new_token }}"
+                readonly
+              />
+              <button class="btn btn-outline-secondary" type="button" id="copyTokenBtn">
+                Copy
+              </button>
+            </div>
+            <div class="form-text mt-2">
+              Use it in Wazuh/SIEM with <code>X-API-Token</code> or <code>Authorization: Bearer &lt;token&gt;</code>.
+              Store it securely. If you lose it, rotate the token.
+            </div>
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            Token is hidden for security. Rotate to generate a new token.
+          </div>
+        {% endif %}
+
+        <!-- Masked current token display -->
+        <div class="mb-3">
+          <label class="form-label">Current Token</label>
+          <div class="form-control bg-light">
+            {% if token_prefix %}
+              <code>{{ token_prefix }}******</code>
+              {% if token_created_at %}
+                <span class="text-muted small ms-2">Created: {{ token_created_at }}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">Not set</span>
+            {% endif %}
+          </div>
+          <div class="form-text">
+            The server stores only a hashed token. Plain token cannot be displayed again.
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <form method="post" class="d-flex flex-wrap gap-2">
+          <button
+            type="submit"
+            class="btn btn-outline-secondary"
+            name="action"
+            value="generate"
+            onclick="return confirm('Generate a new token? Existing integrations will stop working until updated.');"
+          >
+            Generate Random Token
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-danger"
+            name="action"
+            value="rotate"
+            onclick="return confirm('Rotate token? Existing integrations will stop working until updated.');"
+          >
+            Rotate Token
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const btn = document.getElementById("copyTokenBtn");
+  if (btn) {
+    btn.addEventListener("click", async () => {
+      const box = document.getElementById("newTokenBox");
+      if (!box) return;
+      try {
+        await navigator.clipboard.writeText(box.value);
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = "Copy"), 1200);
+      } catch (e) {
+        box.select();
+        document.execCommand("copy");
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = "Copy"), 1200);
+      }
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}API Docs{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">Scope Finder API Documentation</h5>
+  </div>
+  <div class="card-body">
+    <p>
+      These APIs can be used by SIEM (e.g., Wazuh) or other systems to trigger
+      scans and retrieve results.
+    </p>
+
+    <h6>Authentication</h6>
+    <p>
+      There are two ways to authenticate:
+    </p>
+    <ul>
+      <li>
+        <strong>Browser session</strong>: when calling from the web UI (already logged in).
+      </li>
+      <li>
+        <strong>SIEM API token</strong>: set on the
+        <a href="{{ url_for('api_token') }}">API Token</a> page (admin only).
+        Use one of:
+        <ul>
+          <li><code>X-API-Token: &lt;your_token_here&gt;</code></li>
+          <li>
+            <code>Authorization: Bearer &lt;your_token_here&gt;</code>
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr />
+
+    <h6>1. Start Scan</h6>
+    <pre><code>POST /api/scan
+Content-Type: application/json
+X-API-Token: &lt;your_token_here&gt;
+
+{
+  "target": "192.168.1.0/24",
+  "min_port": 1,
+  "max_port": 1024
+}
+</code></pre>
+    <p><strong>Response:</strong></p>
+    <pre><code>{
+  "success": true,
+  "scan_id": 42,
+  "target": "192.168.1.0/24",
+  "cancelled": false,
+  "results": {
+    "192.168.1.10": {
+      "ip": "192.168.1.10",
+      "hostname": "host1.local",
+      "ports": [
+        {
+          "port": 80,
+          "protocol": "tcp",
+          "service": "http",
+          "state": "open",
+          "banner": "HTTP/1.1 400 Bad Request..."
+        }
+      ]
+    }
+  }
+}</code></pre>
+
+    <h6>2. Stop Scan</h6>
+    <pre><code>POST /api/stop
+X-API-Token: &lt;your_token_here&gt;</code></pre>
+    <p>
+      Requests the currently running scan to stop as soon as possible. The scan
+      will return partial results with <code>"cancelled": true</code>.
+    </p>
+
+    <h6>3. List Scans</h6>
+    <pre><code>GET /api/scans
+X-API-Token: &lt;your_token_here&gt;</code></pre>
+    <p>Returns a list of scans visible to the current user or the SIEM service user.</p>
+
+    <h6>4. Get Scan Detail</h6>
+    <pre><code>GET /api/scans/&lt;scan_id&gt;
+X-API-Token: &lt;your_token_here&gt;</code></pre>
+    <p>Returns a single scan with full result JSON.</p>
+
+    <h6>5. Download Scan PDF (UI)</h6>
+    <pre><code>GET /scans/&lt;scan_id&gt;/pdf</code></pre>
+    <p>Downloads a PDF report for the specified scan (browser login only).</p>
+
+    <hr />
+
+    <h5 class="mt-3">Wazuh Integration Example</h5>
+    <p>
+      In Wazuh, you can create a custom integration or active response that calls
+      Scope Finder when certain rules match. A typical <code>curl</code> command
+      in your script might look like:
+    </p>
+
+    <pre><code>curl -s -X POST "http://&lt;scope_finder_host&gt;:5000/api/scan" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Token: &lt;your_token_here&gt;" \
+  -d '{
+        "target": "192.168.1.0/24",
+        "min_port": 1,
+        "max_port": 1024
+      }'</code></pre>
+
+    <p class="small text-muted mt-2">
+      You can include dynamic values (e.g., source IP from the alert) by
+      templating this JSON in your Wazuh integration script.
+    </p>
+  </div>
+</div>
+{% endblock %}

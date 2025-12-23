@@ -1,0 +1,24 @@
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.card {
+  border-radius: 0.75rem;
+}
+
+.card-header {
+  border-bottom-width: 0;
+}
+
+.host-card {
+  border-left: 4px solid #0d6efd;
+}
+
+.badge-port-open {
+  font-size: 0.75rem;
+  padding: 0.3em 0.5em;
+}
+
+.os-label {
+  font-size: 0.85rem;
+}

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">User Management</h5>
+    <span class="text-muted small">Admin only</span>
+  </div>
+  <div class="card-body">
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    <h6>Create New User</h6>
+    <form method="post" class="row g-2 mb-4">
+      <input type="hidden" name="action" value="create" />
+      <div class="col-md-4">
+        <label class="form-label small mb-1" for="username">Username</label>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          id="username"
+          name="username"
+          required
+        />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small mb-1" for="password">Password</label>
+        <input
+          type="password"
+          class="form-control form-control-sm"
+          id="password"
+          name="password"
+          required
+        />
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1" for="role">Role</label>
+        <select
+          class="form-select form-select-sm"
+          id="role"
+          name="role"
+          required
+        >
+          <option value="viewer">Viewer</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-sm btn-primary w-100">
+          Create
+        </button>
+      </div>
+    </form>
+
+    <h6>Existing Users</h6>
+    {% if users|length == 0 %}
+    <p class="text-muted mb-0">No users found.</p>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th style="width: 280px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.id }}</td>
+            <td>
+              {% if u.username in ["admin", "siem"] %}
+              <span class="fw-semibold">{{ u.username }}</span>
+              <span class="badge bg-secondary ms-1">system</span>
+              {% else %}
+              {{ u.username }}
+              {% endif %}
+            </td>
+            <td>{{ u.role }}</td>
+            <td>
+              <div class="d-flex flex-wrap gap-2">
+                <!-- Reset password -->
+                <form method="post" class="d-flex gap-1">
+                  <input type="hidden" name="action" value="reset_password" />
+                  <input type="hidden" name="user_id" value="{{ u.id }}" />
+                  <input
+                    type="password"
+                    name="new_password"
+                    placeholder="New password"
+                    class="form-control form-control-sm"
+                    style="max-width: 150px;"
+                    {% if u.username in ["siem"] %}disabled{% endif %}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    class="btn btn-sm btn-outline-primary"
+                    {% if u.username in ["siem"] %}disabled{% endif %}
+                  >
+                    Reset
+                  </button>
+                </form>
+
+                <!-- Delete -->
+                <form method="post" onsubmit="return confirm('Delete this user?');">
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="user_id" value="{{ u.id }}" />
+                  <button
+                    type="submit"
+                    class="btn btn-sm btn-outline-danger"
+                    {% if u.username in ["admin", "siem"] %}disabled{% endif %}
+                  >
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

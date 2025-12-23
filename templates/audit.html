@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Audit Log{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Audit Log</h5>
+    <span class="text-muted small">Last 500 events (filtered)</span>
+  </div>
+  <div class="card-body">
+    <!-- Filters -->
+    <form
+      class="row g-2 align-items-end mb-3"
+      method="get"
+      action="{{ url_for('audit_page') }}"
+    >
+      <div class="col-md-2">
+        <label for="start_date" class="form-label small mb-1">Start date</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          id="start_date"
+          name="start_date"
+          value="{{ filters.start_date }}"
+        />
+      </div>
+      <div class="col-md-2">
+        <label for="end_date" class="form-label small mb-1">End date</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          id="end_date"
+          name="end_date"
+          value="{{ filters.end_date }}"
+        />
+      </div>
+      <div class="col-md-2">
+        <label for="actor" class="form-label small mb-1">Actor</label>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          id="actor"
+          name="actor"
+          placeholder="username"
+          value="{{ filters.actor }}"
+        />
+      </div>
+      <div class="col-md-2">
+        <label for="action" class="form-label small mb-1">Action</label>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          id="action"
+          name="action"
+          placeholder="e.g. scan_completed"
+          value="{{ filters.action }}"
+        />
+      </div>
+      <div class="col-md-2">
+        <label for="source" class="form-label small mb-1">Source</label>
+        <select
+          id="source"
+          name="source"
+          class="form-select form-select-sm"
+        >
+          <option value="" {% if not filters.source %}selected{% endif %}>Any</option>
+          <option value="ui" {% if filters.source == 'ui' %}selected{% endif %}>
+            UI
+          </option>
+          <option value="api" {% if filters.source == 'api' %}selected{% endif %}>
+            API
+          </option>
+          <option value="system" {% if filters.source == 'system' %}selected{% endif %}>
+            System
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary w-50">
+          Filter
+        </button>
+        <a href="{{ url_for('audit_page') }}" class="btn btn-sm btn-outline-secondary w-50">
+          Reset
+        </a>
+      </div>
+    </form>
+
+    <!-- CSV export (preserves filters) -->
+    <form
+      class="mb-3"
+      method="get"
+      action="{{ url_for('audit_export') }}"
+    >
+      <input type="hidden" name="start_date" value="{{ filters.start_date }}" />
+      <input type="hidden" name="end_date" value="{{ filters.end_date }}" />
+      <input type="hidden" name="actor" value="{{ filters.actor }}" />
+      <input type="hidden" name="action" value="{{ filters.action }}" />
+      <input type="hidden" name="source" value="{{ filters.source }}" />
+      <button type="submit" class="btn btn-sm btn-outline-success">
+        Download CSV (all matching)
+      </button>
+      <span class="small text-muted ms-2">
+        Export all audit events matching current filters.
+      </span>
+    </form>
+
+    {% if logs|length == 0 %}
+    <p class="text-muted mb-0">No audit events for this filter.</p>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Time (UTC)</th>
+            <th>Actor</th>
+            <th>Role</th>
+            <th>Source</th>
+            <th>Action</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in logs %}
+          <tr>
+            <td><code>{{ e.timestamp }}</code></td>
+            <td>{{ e.actor_username or "–" }}</td>
+            <td>{{ e.actor_role or "–" }}</td>
+            <td>{{ e.source or "–" }}</td>
+            <td><code>{{ e.action }}</code></td>
+            <td class="small">{{ e.details or "" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

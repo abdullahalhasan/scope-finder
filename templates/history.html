@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">Scan History</h5>
+  </div>
+  <div class="card-body">
+    {% if scans|length == 0 %}
+    <p class="text-muted mb-0">No scans recorded yet.</p>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Target</th>
+            <th>Exclude IPs</th>
+            <th>Created At (UTC)</th>
+            <th>User</th>
+            <th>Cancelled</th>
+            <th>Report</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in scans %}
+          <tr>
+            <td>{{ s.id }}</td>
+            <td>{{ s.target }}</td>
+            <td class="text-wrap" style="max-width: 260px;">
+              {% if s.exclude_ips %}
+                <code>{{ s.exclude_ips }}</code>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>{{ s.created_at }}</td>
+            <td>{{ s.username }}</td>
+            <td>{{ "Yes" if s.cancelled else "No" }}</td>
+            <td>
+              <a
+                class="btn btn-sm btn-outline-secondary"
+                href="{{ url_for('download_scan_pdf', scan_id=s.id) }}"
+              >
+                PDF
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

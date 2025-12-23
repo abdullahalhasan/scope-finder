@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Scan{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Scan Configuration</h5>
+      </div>
+      <div class="card-body">
+        <form id="scanForm">
+
+          <!-- Admin-managed saved lists -->
+          <div class="mb-3">
+            <label for="saved_target_list" class="form-label">Saved Target Range (Admin)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="saved_target_list"
+              list="savedTargetRanges"
+              placeholder="Search by name (optional)"
+              autocomplete="off"
+            />
+            <datalist id="savedTargetRanges">
+              {% for l in ip_lists if l.list_type == 'target' %}
+                <option value="{{ l.name }}"></option>
+              {% endfor %}
+            </datalist>
+            <div class="form-text">
+              Selected: <span id="saved_target_preview" class="text-muted">—</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="saved_exclude_list" class="form-label">Saved Exclude List (Admin)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="saved_exclude_list"
+              list="savedExcludeLists"
+              placeholder="Search by name (optional)"
+              autocomplete="off"
+            />
+            <datalist id="savedExcludeLists">
+              {% for l in ip_lists if l.list_type == 'exclude' %}
+                <option value="{{ l.name }}"></option>
+              {% endfor %}
+            </datalist>
+            <div class="form-text">
+              Selected: <span id="saved_exclude_preview" class="text-muted">—</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="target" class="form-label">Target (IP / CIDR / Range)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="target"
+              name="target"
+              placeholder="e.g. 192.168.1.0/24 or 192.168.1.10-20"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="exclude_ips" class="form-label">Exclude IPs (Skip from scan)</label>
+            <textarea
+              class="form-control"
+              id="exclude_ips"
+              name="exclude_ips"
+              placeholder="e.g. 192.168.1.10, 192.168.1.0/28, 192.168.1.10-20"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="min_port" class="form-label">Min Port</label>
+            <input
+              type="number"
+              class="form-control"
+              id="min_port"
+              name="min_port"
+              value="1"
+              min="1"
+              max="65535"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label for="max_port" class="form-label">Max Port</label>
+            <input
+              type="number"
+              class="form-control"
+              id="max_port"
+              name="max_port"
+              value="1024"
+              min="1"
+              max="65535"
+            />
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" id="scanBtn" class="btn btn-primary w-50">
+              Start Scan
+            </button>
+            <button
+              type="button"
+              id="stopBtn"
+              class="btn btn-outline-danger w-50"
+              disabled
+            >
+              Stop
+            </button>
+          </div>
+
+          <div
+            id="loadingSpinner"
+            class="text-center mt-3 d-none"
+            aria-hidden="true"
+          >
+            <div class="spinner-border" role="status"></div>
+            <div class="mt-2 small text-muted">Scanning…</div>
+          </div>
+
+          <div id="errorAlert" class="alert alert-danger mt-3 d-none"></div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
+      <div class="card-header">
+        <h6 class="mb-0">Tips</h6>
+      </div>
+      <div class="card-body small text-muted">
+        <ul class="mb-0 ps-3">
+          <li>Use this tool only on networks you own or are authorized to test.</li>
+          <li>Large ranges and port ranges can take time.</li>
+          <li>"Version" is based on simple banner grabbing and may not always be accurate.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Scan Results</h5>
+        <span id="scanTargetLabel" class="text-muted small"></span>
+      </div>
+      <div class="card-body" id="resultsContainer">
+        <p class="text-muted mb-0" id="noResultsText">
+          No scan has been run yet. Submit a target range to see results.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+  window.PROHORI_IP_LISTS = {{ ip_lists|tojson }};
+</script>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+{% endblock %}
